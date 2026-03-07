@@ -1,4 +1,4 @@
-name: Build and deploy Node.js app to Azure Web App - aistudybudyazure
+name: Build and deploy to Azure Web App
 
 on:
   push:
@@ -18,18 +18,16 @@ jobs:
           node-version: '22'
 
       - name: Install dependencies
-        working-directory: ./frontend
         run: npm install
 
-      - name: Build Vite project
-        working-directory: ./frontend
+      - name: Build project
         run: npm run build
 
       - name: Upload dist artifact
         uses: actions/upload-artifact@v4
         with:
           name: build
-          path: frontend/dist
+          path: dist
 
   deploy:
     runs-on: ubuntu-latest
@@ -41,7 +39,7 @@ jobs:
         with:
           name: build
 
-      - name: Deploy to Azure Web App
+      - name: Deploy to Azure
         uses: azure/webapps-deploy@v3
         with:
           app-name: aistudybudyazure
