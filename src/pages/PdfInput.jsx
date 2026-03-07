@@ -1,8 +1,9 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import PageWrapper from '../components/layout/PageWrapper';
 import SubmitButton from '../components/common/SubmitButton';
+import CameraCapture from '../components/camera/CameraCapture';
 import { uploadPdf, uploadImageFromCamera } from '../services/api';
 
 const fadeUp = {
@@ -24,70 +25,9 @@ export default function PdfInput() {
     const [loading, setLoading] = useState(false);
     const [status, setStatus] = useState(null);
 
-    // Camera state
-    const [cameraActive, setCameraActive] = useState(false);
-    const [cameraError, setCameraError] = useState(null);
-    const videoRef = useRef(null);
-    const canvasRef = useRef(null);
-    const streamRef = useRef(null);
-
     const pdfInputRef = useRef(null);
     const imageInputRef = useRef(null);
 
-    /* ── Cleanup camera on unmount or tab change ── */
-    const stopCamera = useCallback(() => {
-        if (streamRef.current) {
-            streamRef.current.getTracks().forEach((track) => track.stop());
-            streamRef.current = null;
-        }
-        setCameraActive(false);
-        setCameraError(null);
-    }, []);
-
-    useEffect(() => {
-        return () => stopCamera();
-    }, [stopCamera]);
-
-    /* ── Start webcam ── */
-    const startCamera = async () => {
-        setCameraError(null);
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
-                audio: false,
-            });
-            streamRef.current = stream;
-            if (videoRef.current) {
-                videoRef.current.srcObject = stream;
-            }
-            setCameraActive(true);
-        } catch (err) {
-            let msg = 'Could not access camera.';
-            if (err.name === 'NotAllowedError') msg = 'Camera permission denied. Please allow camera access in your browser settings.';
-            else if (err.name === 'NotFoundError') msg = 'No camera device found on this device.';
-            setCameraError(msg);
-        }
-    };
-
-    /* ── Capture frame from video ── */
-    const captureImage = () => {
-        const video = videoRef.current;
-        const canvas = canvasRef.current;
-        if (!video || !canvas) return;
-
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(video, 0, 0);
-
-        canvas.toBlob((blob) => {
-            if (!blob) return;
-            const captured = new File([blob], `capture-${Date.now()}.png`, { type: 'image/png' });
-            setFile(captured);
-            setPreview(URL.createObjectURL(blob));
-            stopCamera();
-        }, 'image/png');
-    };
 
     /* ── File selection ── */
     const handleFileChange = (e) => {
@@ -116,7 +56,6 @@ export default function PdfInput() {
 
     const switchTab = (id) => {
         clearFile();
-        stopCamera();
         setActiveTab(id);
     };
 
@@ -222,8 +161,6 @@ export default function PdfInput() {
                 {/* Hidden file inputs */}
                 <input ref={pdfInputRef} type="file" accept=".pdf,application/pdf" className="hidden" onChange={handleFileChange} />
                 <input ref={imageInputRef} type="file" accept="image/jpeg,image/png,image/jpg,.jpg,.jpeg,.png" className="hidden" onChange={handleFileChange} />
-                {/* Hidden canvas for camera capture */}
-                <canvas ref={canvasRef} className="hidden" />
 
                 {/* ── Main content area ── */}
                 <motion.div variants={fadeUp}>
@@ -253,7 +190,7 @@ export default function PdfInput() {
                             </motion.button>
                         )}
 
-                        {/* ═══════ Camera tab: live viewfinder or start button ═══════ */}
+                        {/* ═══════ Camera tab: live viewfinder ═══════ */}
                         {activeTab === 'camera' && !file && (
                             <motion.div
                                 key="camera-zone"
@@ -261,89 +198,14 @@ export default function PdfInput() {
                                 animate={{ opacity: 1, scale: 1 }}
                                 exit={{ opacity: 0, scale: 0.97 }}
                                 transition={{ duration: 0.25 }}
-                                className="rounded-2xl glass overflow-hidden"
                             >
-                                {!cameraActive && !cameraError && (
-                                    /* Start camera prompt */
-                                    <button
-                                        onClick={startCamera}
-                                        className="w-full p-10 sm:p-14 flex flex-col items-center justify-center gap-4 text-center cursor-pointer border border-dashed border-white/10 hover:border-violet-500/40 transition-colors duration-300 group"
-                                    >
-                                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary-600/20 to-primary-400/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 ring-2 ring-primary-500/20">
-                                            <CameraIcon className="w-6 h-6 text-violet-400" />
-                                        </div>
-                                        <div>
-                                            <p className="text-slate-300 font-medium mb-1">Click to open camera</p>
-                                            <p className="text-xs text-slate-500">Works on laptop webcams &amp; mobile cameras</p>
-                                        </div>
-                                    </button>
-                                )}
-
-                                {cameraError && (
-                                    /* Camera error state */
-                                    <div className="p-10 text-center">
-                                        <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-red-500/10 flex items-center justify-center ring-2 ring-red-500/20">
-                                            <svg className="w-6 h-6 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-                                            </svg>
-                                        </div>
-                                        <p className="text-red-400 text-sm mb-4">{cameraError}</p>
-                                        <button
-                                            onClick={() => { setCameraError(null); startCamera(); }}
-                                            className="text-sm font-medium text-slate-400 hover:text-white transition-colors"
-                                        >
-                                            Try again
-                                        </button>
-                                    </div>
-                                )}
-
-                                {cameraActive && (
-                                    /* Live video viewfinder */
-                                    <div className="relative">
-                                        <video
-                                            ref={videoRef}
-                                            autoPlay
-                                            playsInline
-                                            muted
-                                            className="w-full aspect-video object-cover bg-black/50"
-                                        />
-
-                                        {/* Viewfinder overlay */}
-                                        <div className="absolute inset-0 pointer-events-none">
-                                            {/* Corner brackets */}
-                                            <div className="absolute top-4 left-4 w-8 h-8 border-l-2 border-t-2 border-violet-400/60 rounded-tl-lg" />
-                                            <div className="absolute top-4 right-4 w-8 h-8 border-r-2 border-t-2 border-violet-400/60 rounded-tr-lg" />
-                                            <div className="absolute bottom-16 left-4 w-8 h-8 border-l-2 border-b-2 border-violet-400/60 rounded-bl-lg" />
-                                            <div className="absolute bottom-16 right-4 w-8 h-8 border-r-2 border-b-2 border-violet-400/60 rounded-br-lg" />
-                                        </div>
-
-                                        {/* Control bar */}
-                                        <div className="absolute bottom-0 inset-x-0 flex items-center justify-center gap-4 p-4 bg-gradient-to-t from-black/60 to-transparent">
-                                            {/* Cancel */}
-                                            <button
-                                                onClick={stopCamera}
-                                                className="w-10 h-10 rounded-full glass flex items-center justify-center text-slate-400 hover:text-white transition-colors"
-                                                title="Cancel"
-                                            >
-                                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                                </svg>
-                                            </button>
-
-                                            {/* Capture button */}
-                                            <button
-                                                onClick={captureImage}
-                                                className="w-16 h-16 rounded-full bg-white/90 hover:bg-white flex items-center justify-center transition-all duration-200 shadow-glow-md hover:shadow-glow-lg active:scale-90 ring-4 ring-white/20"
-                                                title="Capture"
-                                            >
-                                                <div className="w-12 h-12 rounded-full border-[3px] border-slate-800" />
-                                            </button>
-
-                                            {/* Spacer for centering */}
-                                            <div className="w-10" />
-                                        </div>
-                                    </div>
-                                )}
+                                <CameraCapture
+                                    onCapture={(capturedFile, blob) => {
+                                        setFile(capturedFile);
+                                        setPreview(URL.createObjectURL(blob));
+                                    }}
+                                    onCancel={() => setActiveTab('pdf')}
+                                />
                             </motion.div>
                         )}
 
