@@ -54,7 +54,7 @@ export default function PageWrapper({ children }) {
                             transition={{ type: 'spring', stiffness: 300 }}
                             className="text-lg font-heading font-bold tracking-tight gradient-text-animated"
                         >
-                            Azure
+                            Lipiflow
                         </motion.span>
                     </Link>
 

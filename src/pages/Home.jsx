@@ -78,8 +78,8 @@ export default function Home() {
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-400 opacity-75" />
                             <span className="relative inline-flex rounded-full h-2 w-2 bg-primary-500" />
                         </span>
-                        <span className="bg-gradient-to-r from-primary-300 to-accent bg-clip-text text-transparent font-semibold">
-                            Powered by Azure AI
+                        <span className="text-slate-400 font-medium tracking-wide">
+                            Powered by Lipiflow AI
                         </span>
                     </motion.div>
 
@@ -189,9 +189,9 @@ export default function Home() {
                     <div className="rounded-2xl glass p-6 sm:p-8">
                         <div className="grid grid-cols-3 gap-6 text-center">
                             {[
-                                { value: 'AI', label: 'Powered Analysis' },
-                                { value: '< 30s', label: 'Processing Time' },
-                                { value: '100%', label: 'Secure & Private' },
+                                { value: 'Advanced', label: 'Content Analysis' },
+                                { value: 'AI', label: 'Intelligent Processing' },
+                                { value: 'Structured', label: 'Organized Insights' }
                             ].map(({ value, label }) => (
                                 <div key={label}>
                                     <div className="text-2xl sm:text-3xl font-heading font-bold gradient-text-animated">{value}</div>

@@ -203,8 +203,8 @@ export default function sanitizeContent(raw = '') {
                 md += `## Flashcards\n\n`;
                 obj.flashcards.forEach((card, i) => {
                     md += `Flashcard ${i + 1}\n`;
-                    md += `Question: ${card.question}\n`;
-                    md += `Answer: ${card.answer}\n\n`;
+                    md += `Question: ${card.Q || card.question}\n`;
+                    md += `Answer: ${card.A || card.answer}\n\n`;
                 });
             }
 

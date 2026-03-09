@@ -79,18 +79,8 @@ export default function PdfInput() {
             console.groupEnd();
             clearFile();
 
-            // Extract content from response safely
-            let content = '';
-            if (typeof data === 'string') {
-                content = data;
-            } else if (data) {
-                content = data.synthesis ?? data.content ?? data.result;
-                if (!content) {
-                    content = JSON.stringify(data, null, 2);
-                }
-            }
-
-            navigate('/pdf/result', { state: { content } });
+            // Navigate to results page passing the full API response object
+            navigate('/pdf/result', { state: { data } });
         } catch (err) {
             setStatus({ type: 'error', message: err.message || 'Upload failed. Please try again.' });
         } finally {

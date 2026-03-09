@@ -71,18 +71,7 @@ export default function AudioInput() {
 
             setFile(null);
 
-            // Extract content from response safely
-            let content = '';
-            if (typeof data === 'string') {
-                content = data;
-            } else if (data) {
-                content = data.synthesis ?? data.content ?? data.result;
-                if (!content) {
-                    content = JSON.stringify(data, null, 2);
-                }
-            }
-
-            navigate('/audio/result', { state: { content } });
+            navigate('/audio/result', { state: { data } });
         } catch (err) {
             setStatus({ type: 'error', message: err.message || 'Upload failed. Please try again.' });
         } finally {
