@@ -4,7 +4,9 @@
  * Each endpoint URL is read from a separate environment variable
  * defined in .env (see project root). Vite exposes them via import.meta.env.
  */
+import axios from 'axios';
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 const PDF_API_URL = import.meta.env.VITE_PDF_API_URL || 'http://localhost:5000/pdf';
 const CAMERA_API_URL = import.meta.env.VITE_CAMERA_API_URL || 'http://localhost:5000/camera';
 const AUDIO_API_URL = import.meta.env.VITE_AUDIO_API_URL || 'http://localhost:5000/audio';
@@ -97,17 +99,26 @@ export async function uploadImageFromCamera(imageFile) {
 
 /**
  * Upload an audio file for processing.
- * @param {File} audioFile - An audio file
- * @returns {Promise<{ content?: string, resultId?: string }>}
+ * @param {File} file - An audio file
+ * @returns {Promise<any>}
  */
-export async function uploadAudio(audioFile) {
+export async function uploadAudio(file) {
     const formData = new FormData();
-    formData.append('audio', audioFile);
+    formData.append('media', file);
 
-    return request(AUDIO_API_URL, {
-        method: 'POST',
-        body: formData,
-    });
+    try {
+        const response = await axios.post(`${AUDIO_API_URL}`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return response.data;
+    } catch (error) {
+        if (!error.response || error.code === 'ERR_NETWORK') {
+            throw new Error('Backend is unreachable. Please check if the server is running.');
+        }
+        throw new Error(error.response?.data?.message || error.message || 'Error uploading audio');
+    }
 }
 
 /**

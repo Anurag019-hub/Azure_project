@@ -140,14 +140,8 @@ function normaliseWhitespace(text) {
     return text.trim();
 }
 
-/* ═══════════════════ Main export ═══════════════════ */
-
 /**
- * Sanitise a raw API response string into clean, readable markdown-ish text
- * that the ResultRenderer pipeline can handle directly.
- *
- * @param {string} raw — the raw synthesis / content string from the API
- * @returns {string} — cleaned string
+ * Main export
  */
 export default function sanitizeContent(raw = '') {
     if (!raw || typeof raw !== 'string') return '';
@@ -160,33 +154,78 @@ export default function sanitizeContent(raw = '') {
         if (obj && typeof obj === 'object') {
             let md = '';
 
-            // Explanation blocks
-            const mainText = obj.latex || obj.content || obj.synthesis || obj.explanation || obj.summary || '';
-            if (mainText) {
-                md += `## Explanation\n\n${mainText}\n\n`;
+            // 1. Title
+            const title = obj.title || (obj.logical_topics && obj.logical_topics[0]) || 'Analysis Result';
+            md += `## Title\n\n${title}\n\n`;
+
+            // 2. Concept Explanation
+            const explanation = obj.latex || obj.content || obj.synthesis || obj.explanation || 'No explanation available.';
+            md += `## Concept Explanation\n\n${explanation}\n\n`;
+
+            // 3. Important Topics
+            if (obj.important_topics && Array.isArray(obj.important_topics)) {
+                md += `## Important Topics\n\n`;
+                obj.important_topics.forEach(topic => {
+                    md += `• ${topic}\n`;
+                });
+                md += '\n';
             }
 
-            // Other dynamic fields (arrays to bullets, strings to text)
-            for (const key of Object.keys(obj)) {
-                const lowerKey = key.toLowerCase();
-                if (['latex', 'content', 'synthesis', 'explanation', 'summary', 'result', 'flashcards'].includes(lowerKey)) continue;
+            // 4. Logical Topics (Numbered steps)
+            if (obj.logical_topics && Array.isArray(obj.logical_topics)) {
+                md += `## Logical Topics\n\n`;
+                obj.logical_topics.forEach((topic, i) => {
+                    md += `${i + 1}. ${topic}\n`;
+                });
+                md += '\n';
+            }
 
-                const val = obj[key];
-                if (Array.isArray(val)) {
-                    md += `## ${key.charAt(0).toUpperCase() + key.slice(1)}\n\n` + val.map(v => `• ${v}`).join('\n') + '\n\n';
-                } else if (typeof val === 'string') {
-                    md += `## ${key.charAt(0).toUpperCase() + key.slice(1)}\n\n${val}\n\n`;
+            // 5. Summary
+            if (obj.summary) {
+                md += `## Summary\n\n`;
+                if (Array.isArray(obj.summary)) {
+                    obj.summary.forEach(point => {
+                        md += `• ${point}\n`;
+                    });
+                } else if (typeof obj.summary === 'string') {
+                    // split by line and convert to bullet points
+                    const points = obj.summary.split('\n').filter(p => p.trim());
+                    points.forEach(point => {
+                        const cleaned = point.replace(/^[-•*]\s*/, '').trim();
+                        if (cleaned) md += `• ${cleaned}\n`;
+                    });
                 }
+                md += '\n';
             }
 
-            // Flashcards mapping
+            // 6. Flashcards
             if (obj.flashcards && Array.isArray(obj.flashcards)) {
                 md += `## Flashcards\n\n`;
                 obj.flashcards.forEach((card, i) => {
-                    md += `Card ${i + 1}\n`;
+                    md += `Flashcard ${i + 1}\n`;
                     md += `Question: ${card.question}\n`;
                     md += `Answer: ${card.answer}\n\n`;
                 });
+            }
+
+            // 7. Transcript Summary
+            if (obj.transcript_summary) {
+                md += `## Transcript Summary\n\n`;
+                if (Array.isArray(obj.transcript_summary)) {
+                    // Try to clip to 3-5 points if it's too long
+                    const points = obj.transcript_summary.slice(0, 5);
+                    points.forEach(point => {
+                        md += `• ${point}\n`;
+                    });
+                } else if (typeof obj.transcript_summary === 'string') {
+                    // split by line and convert to bullet points
+                    const points = obj.transcript_summary.split('\n').filter(p => p.trim()).slice(0, 5);
+                    points.forEach(point => {
+                        const cleaned = point.replace(/^[-•*]\s*/, '').trim();
+                        if (cleaned) md += `• ${cleaned}\n`;
+                    });
+                }
+                md += '\n';
             }
 
             text = md;

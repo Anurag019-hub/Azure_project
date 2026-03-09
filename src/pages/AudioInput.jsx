@@ -59,20 +59,30 @@ export default function AudioInput() {
 
         try {
             const data = await uploadAudio(file);
-            console.log('[AudioInput] API response:', data);
+
+            // ── Debug: inspect the raw API response ──
+            console.group(`%c Audio API response`, 'color:#2dd4bf;font-weight:bold');
+            console.log('Raw response:', data);
+            console.log('Type:', typeof data);
+            if (data?.synthesis !== undefined) console.log('response.synthesis:', data.synthesis);
+            if (data?.content !== undefined) console.log('response.content:', data.content);
+            if (data?.result !== undefined) console.log('response.result:', data.result);
+            console.groupEnd();
+
             setFile(null);
 
-            // Backend returns { synthesis: '...' } or { content: '...' } or plain string
-            const content = typeof data === 'string'
-                ? data
-                : (data?.synthesis ?? data?.content ?? '');
-
-            if (content) {
-                navigate('/audio/result', { state: { content } });
-                return;
+            // Extract content from response safely
+            let content = '';
+            if (typeof data === 'string') {
+                content = data;
+            } else if (data) {
+                content = data.synthesis ?? data.content ?? data.result;
+                if (!content) {
+                    content = JSON.stringify(data, null, 2);
+                }
             }
 
-            setStatus({ type: 'success', message: 'Audio uploaded successfully!' });
+            navigate('/audio/result', { state: { content } });
         } catch (err) {
             setStatus({ type: 'error', message: err.message || 'Upload failed. Please try again.' });
         } finally {
