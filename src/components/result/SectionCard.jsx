@@ -37,16 +37,16 @@ export default function SectionCard({ title, children, accent = 'violet', delay 
     return (
         <motion.div
             /* ── Entry: trigger when scrolled into view ── */
-            initial={{ opacity: 0, y: 28 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-50px' }}
-            transition={{ duration: 0.5, delay, ease: [0.22, 1, 0.36, 1] }}
-            /* ── Hover: subtle lift ── */
-            whileHover={{ y: -3, transition: { duration: 0.2 } }}
-            className={`relative rounded-2xl glass border ${c.border} overflow-hidden`}
+            initial={{ opacity: 0, y: 30, scale: 0.98 }}
+            whileInView={{ opacity: 1, y: 0, scale: 1 }}
+            viewport={{ once: true, margin: '-40px' }}
+            transition={{ duration: 0.6, delay, type: "spring", stiffness: 100, damping: 20 }}
+            /* ── Hover: subtle lift and glow ── */
+            whileHover={{ y: -4, boxShadow: '0 20px 40px -10px rgba(0,0,0,0.3)', transition: { duration: 0.25 } }}
+            className={`relative rounded-2xl glass border ${c.border} hover:border-white/20 transition-all duration-300 overflow-hidden group`}
         >
             {/* Gradient glow top-left */}
-            <div className={`absolute top-0 left-0 w-48 h-24 bg-gradient-to-br ${c.glow} rounded-full blur-2xl pointer-events-none`} />
+            <div className={`absolute top-0 left-0 w-48 h-24 bg-gradient-to-br ${c.glow} rounded-full blur-2xl pointer-events-none opacity-60 group-hover:opacity-100 transition-opacity duration-500`} />
 
             <div className="relative p-6 sm:p-7">
                 {title && (

@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import PageWrapper from '../components/layout/PageWrapper';
 import ResultRenderer from '../components/result/ResultRenderer';
 import { getPdfResult } from '../services/api';
+import sanitizeContent from '../utils/sanitizeContent';
 
 const fadeUp = {
     hidden: { opacity: 0, y: 20 },
@@ -14,7 +15,7 @@ export default function PdfResult() {
     const location = useLocation();
     const navigate = useNavigate();
 
-    const [content, setContent] = useState(location.state?.content || '');
+    const [content, setContent] = useState(() => sanitizeContent(location.state?.content || ''));
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
@@ -27,7 +28,7 @@ export default function PdfResult() {
                     const text = typeof data === 'string'
                         ? data
                         : (data?.synthesis ?? data?.content ?? '');
-                    setContent(text);
+                    setContent(sanitizeContent(text));
                 })
                 .catch(() => setError('Failed to load result. Please try again.'))
                 .finally(() => setLoading(false));
@@ -36,8 +37,32 @@ export default function PdfResult() {
 
     return (
         <PageWrapper>
+            {/* Animated Background Blobs */}
+            <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+                <motion.div
+                    animate={{
+                        scale: [1, 1.2, 1],
+                        opacity: [0.15, 0.25, 0.15],
+                        x: [0, 50, 0],
+                        y: [0, -50, 0]
+                    }}
+                    transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+                    className="absolute -top-[20%] -left-[10%] w-[50vw] h-[50vw] rounded-full bg-violet-600/20 blur-[120px]"
+                />
+                <motion.div
+                    animate={{
+                        scale: [1, 1.3, 1],
+                        opacity: [0.1, 0.2, 0.1],
+                        x: [0, -60, 0],
+                        y: [0, 60, 0]
+                    }}
+                    transition={{ duration: 18, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+                    className="absolute top-[40%] -right-[10%] w-[40vw] h-[40vw] rounded-full bg-fuchsia-600/20 blur-[100px]"
+                />
+            </div>
+
             <motion.div
-                className="max-w-3xl mx-auto"
+                className="relative z-10 max-w-3xl mx-auto"
                 initial="hidden"
                 animate="visible"
                 variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
@@ -67,7 +92,12 @@ export default function PdfResult() {
                     <p className="text-slate-400 leading-relaxed">
                         AI-generated study guide from your uploaded document.
                     </p>
-                    <div className="mt-6 h-[2px] w-24 bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-full opacity-60" />
+                    <motion.div
+                        initial={{ width: 0, opacity: 0 }}
+                        animate={{ width: 96, opacity: 0.8 }}
+                        transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+                        className="mt-6 h-[2px] bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-full"
+                    />
                 </motion.div>
 
                 {/* ── States ── */}
@@ -103,7 +133,7 @@ export default function PdfResult() {
                 {/* ── Action bar ── */}
                 {content && (
                     <motion.div variants={fadeUp} className="mt-8">
-                        <Link to="/pdf" className="inline-flex items-center gap-2 text-sm font-medium text-slate-400 hover:text-white transition-colors">
+                        <Link to="/pdf" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-slate-800/50 border border-white/10 text-sm font-medium text-slate-300 hover:text-white hover:border-violet-500/30 hover:shadow-[0_0_20px_-5px_rgba(139,92,246,0.2)] hover:-translate-y-1 transition-all duration-300">
                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
                             </svg>

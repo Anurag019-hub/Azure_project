@@ -79,17 +79,18 @@ export default function PdfInput() {
             console.groupEnd();
             clearFile();
 
-            // Backend returns { synthesis: '...' } or { content: '...' } or plain string
-            const content = typeof data === 'string'
-                ? data
-                : (data?.synthesis ?? data?.content ?? '');
-
-            if (content) {
-                navigate('/pdf/result', { state: { content } });
-                return;
+            // Extract content from response safely
+            let content = '';
+            if (typeof data === 'string') {
+                content = data;
+            } else if (data) {
+                content = data.synthesis ?? data.content ?? data.result;
+                if (!content) {
+                    content = JSON.stringify(data, null, 2);
+                }
             }
 
-            setStatus({ type: 'success', message: 'File uploaded successfully!' });
+            navigate('/pdf/result', { state: { content } });
         } catch (err) {
             setStatus({ type: 'error', message: err.message || 'Upload failed. Please try again.' });
         } finally {

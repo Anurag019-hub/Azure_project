@@ -3,6 +3,7 @@ import SectionCard from './SectionCard';
 import MindMapBlock from './MindMapBlock';
 import TakeawayCard from './TakeawayCard';
 import BulletList from './BulletList';
+import FlashcardGrid from './FlashcardGrid';
 import FinalNotesBox from './FinalNotesBox';
 import TikzDiagram from './TikzDiagram';
 import { isLatexContent } from '../../utils/parseTikz';
@@ -10,6 +11,7 @@ import { isLatexContent } from '../../utils/parseTikz';
 /* ═════════════════════ Section type detection ═════════════════════ */
 
 const SECTION_TYPES = {
+    flashcard: /flash.?card|q\s*&?\s*a|quiz|review.?card/i,
     mindmap: /mind.?map|concept.?map|overview.*diagram|topic.*map/i,
     takeaway: /takeaway|key.?point|highlight|summary.?point|quick.*note/i,
     bullet: /detail|bullet|breakdown|point|list|elaborat/i,
@@ -62,6 +64,16 @@ function renderSection(section, index) {
     if (!nonEmpty.length) return null;
 
     switch (section.type) {
+        case 'flashcard':
+            return (
+                <FlashcardGrid
+                    key={index}
+                    title={section.title}
+                    items={section.lines}
+                    delay={delay}
+                />
+            );
+
         case 'mindmap':
             return (
                 <MindMapBlock

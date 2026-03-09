@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import PageWrapper from '../components/layout/PageWrapper';
 import ResultRenderer from '../components/result/ResultRenderer';
 import { getAudioResult } from '../services/api';
+import sanitizeContent from '../utils/sanitizeContent';
 
 const fadeUp = {
     hidden: { opacity: 0, y: 20 },
@@ -14,7 +15,7 @@ export default function AudioResult() {
     const location = useLocation();
     const navigate = useNavigate();
 
-    const [content, setContent] = useState(location.state?.content || '');
+    const [content, setContent] = useState(() => sanitizeContent(location.state?.content || ''));
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
@@ -27,7 +28,7 @@ export default function AudioResult() {
                     const text = typeof data === 'string'
                         ? data
                         : (data?.synthesis ?? data?.content ?? '');
-                    setContent(text);
+                    setContent(sanitizeContent(text));
                 })
                 .catch(() => setError('Failed to load result. Please try again.'))
                 .finally(() => setLoading(false));

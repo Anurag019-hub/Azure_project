@@ -15,12 +15,33 @@ export function cleanTitle(text = '') {
 }
 
 /**
- * Strips leading bullet markers (-, *, •) from a line.
+ * Strips leading bullet markers (-, *, •) from a line,
+ * removes stray escape characters and lightweight LaTeX noise.
  * Returns null for horizontal rule lines (---) to signal a divider.
  */
 export function cleanLine(text = '') {
     if (/^[-*_]{3,}$/.test(text.trim())) return null;
-    return text.replace(/^[\s\-*•]+/, '').trim();
+
+    let line = text.replace(/^[\s\-*•]+/, '').trim();
+
+    // Strip lightweight LaTeX commands that might survive sanitisation
+    line = line.replace(/\\textbf\{([^}]*)\}/g, '**$1**');
+    line = line.replace(/\\(?:textit|emph)\{([^}]*)\}/g, '$1');
+    line = line.replace(/\\text\{([^}]*)\}/g, '$1');
+    line = line.replace(/\\frac\{([^}]*)\}\{([^}]*)\}/g, '$1/$2');
+    line = line.replace(/\\[a-zA-Z]+(?:\{[^}]*\})?/g, '');
+
+    // Strip stray escape chars and symbols
+    line = line.replace(/\\n/g, ' ');
+    line = line.replace(/\\\\/g, ' ');
+    line = line.replace(/\\(?![a-zA-Z])/g, '');
+    line = line.replace(/[{}]/g, '');
+
+    // Strip dollar-sign math delimiters
+    line = line.replace(/\$\$([^$]*)\$\$/g, '$1');
+    line = line.replace(/\$([^$]*)\$/g, '$1');
+
+    return line.trim();
 }
 
 /**
