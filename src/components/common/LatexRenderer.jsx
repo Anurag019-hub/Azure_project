@@ -17,13 +17,18 @@ import 'katex/dist/katex.min.css';
  */
 export default function LatexRenderer({ content = '', className = '' }) {
     const rendered = useMemo(() => {
-        if (!content) return '';
+        if (content === null || content === undefined) return '';
+
+        // Ensure content is a string before processing
+        const stringContent = typeof content === 'string'
+            ? content
+            : (typeof content === 'object' ? JSON.stringify(content) : String(content));
 
         try {
-            return parseLatexContent(content);
+            return parseLatexContent(stringContent);
         } catch {
             // Fallback: show raw content if parsing completely fails
-            return escapeHtml(content);
+            return escapeHtml(stringContent);
         }
     }, [content]);
 

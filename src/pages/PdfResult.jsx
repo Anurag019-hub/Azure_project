@@ -5,6 +5,7 @@ import PageWrapper from '../components/layout/PageWrapper';
 import ResultRenderer from '../components/result/ResultRenderer';
 import { getPdfResult } from '../services/api';
 import sanitizeContent from '../utils/sanitizeContent';
+import LatexRenderer from '../components/common/LatexRenderer';
 
 const fadeUp = {
     hidden: { opacity: 0, y: 20 },
@@ -156,13 +157,28 @@ export default function PdfResult() {
                                         <h3 className="text-lg font-heading font-semibold text-violet-400 mb-3">
                                             {section}
                                         </h3>
-                                        <ul className="list-disc list-inside text-slate-300 space-y-2">
-                                            {Array.isArray(points) ? points.map((p, i) => (
-                                                <li key={i} className="leading-relaxed">{p}</li>
-                                            )) : (
-                                                <li className="leading-relaxed">{points}</li>
-                                            )}
-                                        </ul>
+                                        {Array.isArray(points) ? (
+                                            <ul className="list-disc text-slate-300 space-y-2 ml-5">
+                                                {points.map((p, i) => {
+                                                    // Handle object structure: { Title: "...", BulletPoints: [...] }
+                                                    if (typeof p === 'object' && p !== null && p.Title && Array.isArray(p.BulletPoints)) {
+                                                        return (
+                                                            <li key={i} className="leading-relaxed pl-1 mt-4 first:mt-0">
+                                                                <strong className="block text-violet-300 mb-1"><LatexRenderer content={p.Title} /></strong>
+                                                                <ul className="list-disc text-slate-400 space-y-1 ml-5 mt-2">
+                                                                    {p.BulletPoints.map((bp, j) => (
+                                                                        <li key={j} className="leading-relaxed"><LatexRenderer content={bp} /></li>
+                                                                    ))}
+                                                                </ul>
+                                                            </li>
+                                                        );
+                                                    }
+                                                    return <li key={i} className="leading-relaxed pl-1"><LatexRenderer content={p} /></li>;
+                                                })}
+                                            </ul>
+                                        ) : (
+                                            <div className="leading-relaxed text-slate-300"><LatexRenderer content={points} /></div>
+                                        )}
                                     </div>
                                 ))}
                             </div>
@@ -178,7 +194,7 @@ export default function PdfResult() {
                                             <svg className="w-5 h-5 text-violet-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                                             </svg>
-                                            <span className="leading-relaxed">{topic}</span>
+                                            <div className="leading-relaxed flex-1"><LatexRenderer content={topic} /></div>
                                         </li>
                                     ))}
                                 </ul>
@@ -202,9 +218,9 @@ export default function PdfResult() {
                                 </h3>
                                 <ul className="space-y-3">
                                     {summary.map((point, i) => (
-                                        <li key={`summary-${i}`} className="flex gap-4">
+                                        <li key={`summary-${i}`} className="flex gap-4 items-start">
                                             <span style={{ color: 'rgba(255, 221, 87, 0.7)' }} className="mt-1">•</span>
-                                            <span style={{ color: 'rgba(255, 240, 180, 0.85)' }} className="leading-relaxed">{point}</span>
+                                            <div style={{ color: 'rgba(255, 240, 180, 0.85)' }} className="leading-relaxed flex-1"><LatexRenderer content={point} /></div>
                                         </li>
                                     ))}
                                 </ul>
@@ -234,11 +250,11 @@ export default function PdfResult() {
 
                                                 <div className="mb-6">
                                                     <div className="text-[10px] font-heading tracking-wider uppercase text-violet-400 mb-2 font-semibold">Question {idx + 1}</div>
-                                                    <p className="text-lg font-medium text-slate-200 leading-snug">{question}</p>
+                                                    <LatexRenderer content={question} className="text-lg font-medium text-slate-200 leading-snug" />
                                                 </div>
                                                 <div className="pt-5 border-t border-white/10">
                                                     <div className="text-[10px] font-heading tracking-wider uppercase text-fuchsia-400 mb-2 font-semibold">Answer</div>
-                                                    <p className="text-slate-400 leading-relaxed text-sm">{answer}</p>
+                                                    <LatexRenderer content={answer} className="text-slate-400 leading-relaxed text-sm" />
                                                 </div>
                                             </div>
                                         );
