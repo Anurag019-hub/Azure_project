@@ -304,13 +304,9 @@
 }
 
 .latex-content .latex-text {
-  margin-bottom: 1rem;
+  /* Removed block margins as they are now spans */
   line-height: inherit;
   color: inherit;
-}
-
-.latex-content .latex-text:last-child {
-  margin-bottom: 0;
 }
 
 /* Block (display) equations */

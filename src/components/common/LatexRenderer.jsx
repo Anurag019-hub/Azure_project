@@ -136,8 +136,9 @@ function renderMath(latex, displayMode) {
 }
 
 /**
- * Wraps plain text segments into <p> tags, splitting on double-newlines
- * for paragraph breaks. Single newlines become <br>.
+ * Wraps plain text segments into <span> tags. We use inline elements
+ * so that inline math doesn't get forced onto a new line. Newlines 
+ * are handled with <br /> markers.
  */
 function renderText(text) {
     const paragraphs = text.split(/\n\s*\n/);
@@ -146,10 +147,10 @@ function renderText(text) {
             const trimmed = p.trim();
             if (!trimmed) return '';
             const withBreaks = escapeHtml(trimmed).replace(/\n/g, '<br />');
-            return `<p class="latex-text">${withBreaks}</p>`;
+            return `<span class="latex-text">${withBreaks}</span>`;
         })
         .filter(Boolean)
-        .join('');
+        .join('<br /><br />');
 }
 
 /** Simple HTML escape */
